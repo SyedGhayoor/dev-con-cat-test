@@ -20,13 +20,19 @@ class ApplicationPolicy
       @scope = scope
     end
 
+    # TenantScoped's default_scope is the actual enforcement boundary now.
+    # It raises for a super_admin outside the Admin:: namespace (they have no
+    # account), so `scope.all` here can never accidentally hand back every
+    # account's records the way it could before that existed.
     def resolve
-      user.super_admin? ? scope.all : scope.where(account_id: user.account_id)
+      scope.where(account_id: user.account_id)
     end
   end
 
   private
 
+  # Re-derives tenant ownership from the record itself, independent of how it
+  # was fetched. The backstop for a controller that forgot to scope a query.
   def same_account?
     user.super_admin? || (user.account_id.present? && record.account_id == user.account_id)
   end
