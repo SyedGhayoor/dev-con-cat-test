@@ -1,0 +1,37 @@
+<% content_for :title, "Dashboard" %>
+
+<h1 class="text-2xl font-bold mb-1"><%= @account.company_name %></h1>
+<p class="text-slate-500 mb-6"><%= @account.plan.capitalize %> plan &middot; <%= @account.status.tr("_", " ").capitalize %></p>
+
+<div class="grid grid-cols-3 gap-4 mb-8">
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Credits remaining</div>
+    <div class="text-2xl font-bold mt-1"><%= number_with_delimiter(@account.credits_remaining) %></div>
+    <div class="text-xs text-slate-400 mt-1">of <%= number_with_delimiter(@account.monthly_credit_allowance) %> this cycle</div>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Avg daily burn</div>
+    <div class="text-2xl font-bold mt-1"><%= number_with_delimiter(@account.avg_daily_burn) %></div>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Enabled modules</div>
+    <div class="text-sm mt-2"><%= @account.enabled_modules.join(", ") %></div>
+  </div>
+</div>
+
+<h2 class="text-lg font-semibold mb-3">Recent leads</h2>
+<div class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100">
+  <% if @recent_leads.empty? %>
+    <p class="p-4 text-slate-400 text-sm">No leads captured yet.</p>
+  <% else %>
+    <% @recent_leads.each do |lead| %>
+      <div class="p-4 flex items-center justify-between">
+        <div>
+          <div class="font-medium"><%= lead.first_name %> <%= lead.last_name %></div>
+          <div class="text-xs text-slate-400"><%= lead.lead_id %> &middot; <%= lead.created_at.strftime("%b %-d, %H:%M") %></div>
+        </div>
+        <%= link_to "View", lead_path(lead), class: "text-blue-600 text-sm hover:underline" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
