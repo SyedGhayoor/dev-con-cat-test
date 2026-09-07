@@ -49,6 +49,6 @@ Rails.application.configure do
   # config.action_view.annotate_rendered_view_with_filenames = true
 
   # Raise error when a before_action's only/except options reference missing actions.
-  # Disabled -- see config/environments/development.rb for why.
+  # Disabled, see config/environments/development.rb for why.
   config.action_controller.raise_on_missing_callback_actions = false
 end
