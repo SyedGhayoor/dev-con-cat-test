@@ -18,6 +18,12 @@ module SuperPixel
 
     config.middleware.use Rack::Attack
 
+    # db/schema.rb (the default Ruby DSL dump) can't express the raw-SQL
+    # trigger that enforces consent_certificates immutability at the
+    # database level, and it would be silently dropped on every db:reset.
+    # :sql dumps db/structure.sql instead, a real pg_dump, which keeps it.
+    config.active_record.schema_format = :sql
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

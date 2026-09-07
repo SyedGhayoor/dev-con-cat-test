@@ -5,6 +5,7 @@ class ConsentCertificate < ApplicationRecord
   belongs_to :verification_run
 
   before_validation :generate_certificate_uid, on: :create
+  before_create :assign_chain_position
 
   validates :certificate_uid, presence: true, uniqueness: true
   validates :content_hash, presence: true
@@ -31,9 +32,38 @@ class ConsentCertificate < ApplicationRecord
     end
   end
 
+  # A single hash only proves one certificate's own content wasn't edited.
+  # It says nothing if the row is deleted outright, or two certificates are
+  # swapped. Walking the chain catches both: each certificate names the
+  # previous one's hash, so a missing or reordered link breaks the chain
+  # visibly instead of just quietly disappearing.
+  def self.chain_intact?(account)
+    certificates = unscoped.where(account_id: account.id).order(:sequence_number).to_a
+
+    certificates.each_with_index do |certificate, index|
+      expected_previous_hash = index.zero? ? nil : certificates[index - 1].content_hash
+      return false if certificate.previous_hash != expected_previous_hash
+      return false unless certificate.verify
+    end
+
+    true
+  end
+
   private
 
   def generate_certificate_uid
     self.certificate_uid ||= "cert_#{SecureRandom.hex(10)}"
+  end
+
+  # Locks the account while reading the last link in its chain so two
+  # certificates issued for the same account at the same moment (two leads
+  # finishing verification in parallel) can't both compute the same next
+  # position. Same race Account#debit_credits! guards against.
+  def assign_chain_position
+    account.with_lock do
+      previous = self.class.unscoped.where(account_id: account_id).order(sequence_number: :desc).first
+      self.sequence_number = (previous&.sequence_number || 0) + 1
+      self.previous_hash = previous&.content_hash
+    end
   end
 end
