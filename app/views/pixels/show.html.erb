@@ -1,0 +1,26 @@
+<% content_for :title, @pixel.name %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold"><%= @pixel.name %></h1>
+    <p class="text-slate-400 text-sm font-mono"><%= @pixel.public_id %></p>
+  </div>
+  <%= link_to "Edit", edit_pixel_path(@pixel), class: "text-sm text-blue-600 hover:underline" %>
+</div>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Embed snippet</h2>
+<p class="text-sm text-slate-500 mb-2">Paste this into the &lt;head&gt; of the landing page.</p>
+<pre class="bg-slate-900 text-slate-100 text-xs rounded-lg p-4 overflow-x-auto mb-6"><code><%= @pixel.embed_snippet(host: request.base_url) %></code></pre>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Allowed landing pages</h2>
+<ul class="text-sm text-slate-600 mb-6 list-disc list-inside">
+  <% @pixel.allowed_landing_pages.each do |url| %>
+    <li><%= url %></li>
+  <% end %>
+  <% if @pixel.allowed_landing_pages.empty? %>
+    <li class="text-slate-400 list-none">None configured — any page may embed this pixel.</li>
+  <% end %>
+</ul>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Enabled modules (account-level)</h2>
+<p class="text-sm text-slate-600"><%= @pixel.enabled_modules.join(", ") %></p>
