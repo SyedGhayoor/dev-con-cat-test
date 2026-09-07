@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Super Pixel" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+  </head>
+
+  <body class="bg-slate-50 text-slate-900">
+    <% if authenticated? %>
+      <nav class="bg-slate-900 text-white px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+          <%= link_to "Super Pixel", root_path, class: "font-bold tracking-tight" %>
+          <% unless Current.user.super_admin? %>
+            <%= link_to "Dashboard", root_path, class: "text-sm text-slate-300 hover:text-white" %>
+            <%= link_to "Pixels", pixels_path, class: "text-sm text-slate-300 hover:text-white" %>
+            <%= link_to "CRM", leads_path, class: "text-sm text-slate-300 hover:text-white" %>
+          <% else %>
+            <%= link_to "All accounts", admin_root_path, class: "text-sm text-slate-300 hover:text-white" %>
+          <% end %>
+        </div>
+        <div class="flex items-center gap-4 text-sm text-slate-300">
+          <% if Current.account %>
+            <span><%= Current.account.company_name %></span>
+          <% end %>
+          <span class="uppercase text-xs tracking-wide bg-slate-700 rounded px-2 py-0.5"><%= Current.user.role.tr("_", " ") %></span>
+          <%= button_to "Sign out", session_path, method: :delete, class: "text-slate-300 hover:text-white bg-transparent border-0 p-0 cursor-pointer text-sm" %>
+        </div>
+      </nav>
+    <% end %>
+    <main class="max-w-6xl mx-auto px-6 py-8">
+      <% if alert = flash[:alert] %>
+        <p class="py-2 px-3 bg-red-50 mb-5 text-red-600 font-medium rounded-lg"><%= alert %></p>
+      <% end %>
+      <% if notice = flash[:notice] %>
+        <p class="py-2 px-3 bg-green-50 mb-5 text-green-600 font-medium rounded-lg"><%= notice %></p>
+      <% end %>
+      <%= yield %>
+    </main>
+  </body>
+</html>
