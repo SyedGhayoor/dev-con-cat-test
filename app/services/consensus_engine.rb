@@ -147,6 +147,8 @@ class ConsensusEngine
       verdict: verdict, score: score, reasons: reasons
     )
 
+    ConsentCertificates::Issue.call(@run, consensus)
+
     ActivityEvent.record!(
       account: @run.account, lead: @run.lead, verification_run: @run, event_type: "verdict_issued",
       payload: { "verdict" => verdict, "score" => score, "reasons" => reasons.map { |r| r["human_text"] } }

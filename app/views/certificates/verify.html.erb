@@ -1,0 +1,20 @@
+<% content_for :title, "Verify certificate" %>
+
+<div class="max-w-lg mx-auto bg-white border border-slate-200 rounded-xl p-8 text-center">
+  <% if @certificate.verify %>
+    <div class="text-green-600 text-4xl mb-3">&#10003;</div>
+    <h1 class="text-xl font-bold mb-1">Certificate is authentic</h1>
+    <p class="text-slate-500 text-sm mb-6">The stored evidence matches its recorded hash — nothing has been altered since issuance.</p>
+  <% else %>
+    <div class="text-red-600 text-4xl mb-3">&#10007;</div>
+    <h1 class="text-xl font-bold mb-1">Hash mismatch</h1>
+    <p class="text-slate-500 text-sm mb-6">This certificate's stored content does not match its recorded hash.</p>
+  <% end %>
+
+  <dl class="text-sm text-left space-y-2 border-t border-slate-100 pt-4">
+    <div class="flex justify-between"><dt class="text-slate-400">Certificate</dt><dd class="font-mono text-xs"><%= @certificate.certificate_uid %></dd></div>
+    <div class="flex justify-between"><dt class="text-slate-400">Verdict</dt><dd class="font-semibold uppercase"><%= @certificate.snapshot["verdict"] %></dd></div>
+    <div class="flex justify-between"><dt class="text-slate-400">Issued</dt><dd><%= @certificate.issued_at.strftime("%b %-d, %Y %H:%M UTC") %></dd></div>
+    <div class="flex justify-between"><dt class="text-slate-400">Layers evaluated</dt><dd><%= @certificate.snapshot["layers"].count { |l| l["state"] == "returned_verdict" } %> of <%= @certificate.snapshot["layers"].size %></dd></div>
+  </dl>
+</div>

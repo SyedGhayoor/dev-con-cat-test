@@ -1,0 +1,2 @@
+class ConsentCertificatePolicy < ApplicationPolicy
+end

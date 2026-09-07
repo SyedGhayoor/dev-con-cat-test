@@ -1,0 +1,61 @@
+<% content_for :title, "Certificate #{@certificate.certificate_uid}" %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Consent Certificate</h1>
+    <p class="text-slate-400 text-sm font-mono"><%= @certificate.certificate_uid %></p>
+  </div>
+  <span class="text-xs px-3 py-1 rounded-full font-semibold uppercase
+    <%= { "accept" => "bg-green-50 text-green-600", "review" => "bg-amber-50 text-amber-600", "reject" => "bg-red-50 text-red-600" }[@certificate.snapshot["verdict"]] %>">
+    <%= @certificate.snapshot["verdict"] %>
+  </span>
+</div>
+
+<div class="grid grid-cols-2 gap-4 mb-6">
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Lead</div>
+    <div class="font-medium mt-1"><%= @certificate.lead.first_name %> <%= @certificate.lead.last_name %></div>
+    <div class="text-xs text-slate-400"><%= @certificate.lead.lead_id %></div>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Issued</div>
+    <div class="font-medium mt-1"><%= @certificate.issued_at.strftime("%b %-d, %Y %H:%M UTC") %></div>
+  </div>
+</div>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Reasons</h2>
+<ul class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100 mb-6">
+  <% @certificate.snapshot["reasons"].each do |r| %>
+    <li class="p-3 text-sm flex justify-between">
+      <span><%= r["human_text"] %></span>
+      <span class="text-slate-400 font-mono text-xs"><%= r["code"] %><%= " (w=#{r["weight"]})" if r["weight"] %></span>
+    </li>
+  <% end %>
+</ul>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Layer-by-layer</h2>
+<table class="w-full bg-white border border-slate-200 rounded-lg text-sm mb-6">
+  <thead>
+    <tr class="text-left text-xs uppercase text-slate-400 border-b border-slate-100">
+      <th class="p-3">Layer</th><th class="p-3">State</th><th class="p-3">Credits</th>
+    </tr>
+  </thead>
+  <tbody class="divide-y divide-slate-100">
+    <% @certificate.snapshot["layers"].each do |l| %>
+      <tr>
+        <td class="p-3 font-medium"><%= l["layer"] %></td>
+        <td class="p-3 text-slate-500"><%= l["state"].tr("_", " ") %></td>
+        <td class="p-3 text-slate-500"><%= l["credits_charged"] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Tamper-evidence</h2>
+<div class="bg-white border border-slate-200 rounded-lg p-4 text-sm">
+  <p class="mb-1"><span class="text-slate-400">Content hash:</span> <code class="text-xs"><%= @certificate.content_hash %></code></p>
+  <p class="mb-1"><span class="text-slate-400">Retained TrustedForm reference:</span> <%= @certificate.trusted_form_cert_url || "none (consent not independently verified)" %></p>
+  <p class="mt-3">
+    <%= link_to "Public verification link →", verify_certificate_path(@certificate), class: "text-blue-600 hover:underline", target: "_blank" %>
+  </p>
+</div>
