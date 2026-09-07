@@ -1,0 +1,44 @@
+<% content_for :title, "Platform overview" %>
+
+<h1 class="text-2xl font-bold mb-2">All accounts</h1>
+<p class="text-slate-500 text-sm mb-6"><%= @accounts.size %> accounts &middot; <%= @at_risk.size %> flagged</p>
+
+<% if @at_risk.any? %>
+  <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <h2 class="text-sm font-semibold text-red-700 mb-2">⚠ Needs attention</h2>
+    <ul class="text-sm text-red-700 space-y-1">
+      <% @at_risk.each do |a| %>
+        <li>
+          <%= link_to a.company_name, admin_account_path(a.account), class: "font-medium hover:underline" %> —
+          <% if a.past_due? %>past due, <% end %>
+          <%= number_with_delimiter(a.credits_remaining) %> credits left
+          (<%= a.days_until_dry.infinite? ? "no burn data" : "~#{a.days_until_dry} day(s) at current burn" %>)
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<div class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100">
+  <% @accounts.each do |a| %>
+    <div class="p-4 flex items-center justify-between <%= "bg-red-50/40" if a.at_risk? %>">
+      <div>
+        <div class="font-medium flex items-center gap-2">
+          <%= a.company_name %>
+          <% if a.at_risk? %><span class="text-xs text-red-600 font-semibold">⚠ AT RISK</span><% end %>
+        </div>
+        <div class="text-xs text-slate-400">
+          <%= a.plan.capitalize %> &middot;
+          <span class="<%= "text-red-600 font-medium" if a.past_due? %>"><%= a.status.tr("_", " ").capitalize %></span>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="font-medium"><%= number_with_delimiter(a.credits_remaining) %> / <%= number_with_delimiter(a.monthly_credit_allowance) %> credits</div>
+        <div class="text-xs text-slate-400"><%= a.percent_used %>% used &middot; burn ~<%= a.avg_daily_burn %>/day
+          <% unless a.days_until_dry.infinite? %> &middot; ~<%= a.days_until_dry %>d left<% end %>
+        </div>
+      </div>
+      <%= link_to "Details", admin_account_path(a.account), class: "text-blue-600 text-sm hover:underline ml-6" %>
+    </div>
+  <% end %>
+</div>

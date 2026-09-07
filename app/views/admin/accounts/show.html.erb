@@ -1,0 +1,80 @@
+<% content_for :title, @account.company_name %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold"><%= @account.company_name %></h1>
+    <p class="text-slate-400 text-sm"><%= @account.account_id %> &middot; <%= @account.plan.capitalize %> plan &middot; <%= @account.billing_contact %></p>
+  </div>
+  <% if @presenter.at_risk? %>
+    <span class="text-sm px-4 py-1.5 rounded-full font-semibold bg-red-50 text-red-600">⚠ AT RISK</span>
+  <% end %>
+</div>
+
+<div class="grid grid-cols-4 gap-4 mb-8">
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Credits remaining</div>
+    <div class="text-xl font-bold mt-1"><%= number_with_delimiter(@account.credits_remaining) %></div>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">% used this cycle</div>
+    <div class="text-xl font-bold mt-1"><%= @presenter.percent_used %>%</div>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Avg daily burn</div>
+    <div class="text-xl font-bold mt-1"><%= @account.avg_daily_burn %></div>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-lg p-4">
+    <div class="text-xs uppercase text-slate-400 font-medium">Runs dry in</div>
+    <div class="text-xl font-bold mt-1"><%= @presenter.days_until_dry.infinite? ? "—" : "#{@presenter.days_until_dry}d" %></div>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-6 mb-8">
+  <div>
+    <h2 class="text-sm font-semibold text-slate-700 mb-2">Enabled modules</h2>
+    <p class="text-sm bg-white border border-slate-200 rounded-lg p-3"><%= @account.enabled_modules.join(", ") %></p>
+  </div>
+  <div>
+    <h2 class="text-sm font-semibold text-slate-700 mb-2">Users</h2>
+    <ul class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100 text-sm">
+      <% @users.each do |u| %>
+        <li class="p-2 flex justify-between"><span><%= u.name %></span><span class="text-slate-400"><%= u.role %></span></li>
+      <% end %>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Recent credit activity</h2>
+<table class="w-full bg-white border border-slate-200 rounded-lg text-sm mb-8">
+  <thead>
+    <tr class="text-left text-xs uppercase text-slate-400 border-b border-slate-100">
+      <th class="p-3">Reason</th><th class="p-3">Delta</th><th class="p-3">Balance after</th><th class="p-3">When</th>
+    </tr>
+  </thead>
+  <tbody class="divide-y divide-slate-100">
+    <% @recent_ledger.each do |entry| %>
+      <tr>
+        <td class="p-3"><%= entry.reason %></td>
+        <td class="p-3 <%= "text-red-600" if entry.delta.negative? %>"><%= entry.delta %></td>
+        <td class="p-3 text-slate-500"><%= number_with_delimiter(entry.balance_after) %></td>
+        <td class="p-3 text-slate-400 text-xs"><%= entry.created_at.strftime("%b %-d %H:%M:%S") %></td>
+      </tr>
+    <% end %>
+    <% if @recent_ledger.empty? %>
+      <tr><td class="p-3 text-slate-400" colspan="4">No credit activity yet.</td></tr>
+    <% end %>
+  </tbody>
+</table>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Recent leads</h2>
+<div class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100">
+  <% @recent_leads.each do |lead| %>
+    <div class="p-3 text-sm flex justify-between">
+      <span><%= lead.first_name %> <%= lead.last_name %> (<%= lead.lead_id %>)</span>
+      <span class="text-slate-400"><%= lead.created_at.strftime("%b %-d") %></span>
+    </div>
+  <% end %>
+  <% if @recent_leads.empty? %>
+    <p class="p-3 text-slate-400 text-sm">No leads yet.</p>
+  <% end %>
+</div>
