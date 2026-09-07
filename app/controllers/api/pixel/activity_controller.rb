@@ -53,11 +53,18 @@ module Api
         next_heartbeat_at = HEARTBEAT_EVERY.from_now
 
         loop do
-          new_events = lead.activity_events
-                            .where(event_type: %w[layer_completed verdict_issued])
-                            .where("id > ?", cursor)
-                            .order(:id)
-                            .to_a
+          # Checks a connection out of the pool only for this one query, then
+          # returns it immediately. Without this, a long-lived SSE connection
+          # would hold a connection for its entire life, sleep included, and
+          # a handful of concurrent live-demo visitors would be enough to
+          # exhaust a small pool and stall every other request on the site.
+          new_events = ActiveRecord::Base.connection_pool.with_connection do
+            lead.activity_events
+                .where(event_type: %w[layer_completed verdict_issued])
+                .where("id > ?", cursor)
+                .order(:id)
+                .to_a
+          end
 
           new_events.each do |event|
             cursor = event.id
