@@ -1,0 +1,43 @@
+<% content_for :title, "CRM" %>
+
+<h1 class="text-2xl font-bold mb-6">CRM</h1>
+
+<%= form_with url: leads_path, method: :get, class: "flex gap-3 mb-6" do %>
+  <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search name, email, phone, lead ID…"
+         class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm">
+  <select name="verdict" class="rounded-md border border-slate-300 px-3 py-2 text-sm">
+    <option value="">All verdicts</option>
+    <% %w[accept review reject].each do |v| %>
+      <option value="<%= v %>" <%= "selected" if params[:verdict] == v %>><%= v.capitalize %></option>
+    <% end %>
+  </select>
+  <button type="submit" class="bg-slate-900 text-white text-sm font-medium px-4 py-2 rounded-md">Filter</button>
+  <% if params[:q].present? || params[:verdict].present? %>
+    <%= link_to "Clear", leads_path, class: "text-sm text-slate-500 self-center hover:underline" %>
+  <% end %>
+<% end %>
+
+<div class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100">
+  <% if @leads.empty? %>
+    <p class="p-4 text-slate-400 text-sm">No leads match.</p>
+  <% end %>
+  <% @leads.each do |lead| %>
+    <% cv = lead.current_run&.consensus_verdict %>
+    <%= link_to lead_path(lead), class: "p-4 flex items-center justify-between hover:bg-slate-50" do %>
+      <div>
+        <div class="font-medium"><%= lead.first_name %> <%= lead.last_name %></div>
+        <div class="text-xs text-slate-400"><%= lead.lead_id %> &middot; <%= lead.email %> &middot; <%= lead.created_at.strftime("%b %-d, %H:%M") %></div>
+      </div>
+      <% if cv %>
+        <span class="text-xs px-3 py-1 rounded-full font-semibold uppercase
+          <%= { "accept" => "bg-green-50 text-green-600", "review" => "bg-amber-50 text-amber-600", "reject" => "bg-red-50 text-red-600" }[cv.verdict] %>">
+          <%= cv.verdict %>
+        </span>
+      <% else %>
+        <span class="text-xs px-3 py-1 rounded-full font-semibold uppercase bg-slate-100 text-slate-500">
+          <%= lead.current_run ? "processing" : "no run" %>
+        </span>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

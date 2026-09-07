@@ -1,0 +1,84 @@
+<% content_for :title, "#{@lead.first_name} #{@lead.last_name}" %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold"><%= @lead.first_name %> <%= @lead.last_name %></h1>
+    <p class="text-slate-400 text-sm"><%= @lead.lead_id %> &middot; captured <%= @lead.created_at.strftime("%b %-d, %Y %H:%M") %></p>
+  </div>
+  <% if (cv = @run&.consensus_verdict) %>
+    <span class="text-sm px-4 py-1.5 rounded-full font-semibold uppercase
+      <%= { "accept" => "bg-green-50 text-green-600", "review" => "bg-amber-50 text-amber-600", "reject" => "bg-red-50 text-red-600" }[cv.verdict] %>">
+      <%= cv.verdict %><% if cv.score %> &middot; <%= cv.score.to_i %><% end %>
+    </span>
+  <% end %>
+</div>
+
+<div class="grid grid-cols-2 gap-4 mb-6">
+  <div class="bg-white border border-slate-200 rounded-lg p-4 text-sm">
+    <div class="text-xs uppercase text-slate-400 font-medium mb-2">Contact</div>
+    <p>Email: <%= @lead.email %></p>
+    <p>Phone: <%= @lead.phone %></p>
+    <p>Landing page: <%= @lead.landing_page_url %></p>
+    <p>Campaign: <%= @lead.campaign || "—" %></p>
+  </div>
+  <div class="bg-white border border-slate-200 rounded-lg p-4 text-sm">
+    <div class="text-xs uppercase text-slate-400 font-medium mb-2">Capture</div>
+    <p>Form dwell: <%= @lead.form_dwell_ms ? "#{@lead.form_dwell_ms}ms" : "—" %></p>
+    <p>Submit IP: <%= @lead.submit_ip %></p>
+    <p>Pixel: <%= @lead.pixel.name %> (<%= @lead.pixel.public_id %>)</p>
+  </div>
+</div>
+
+<% if cv %>
+  <h2 class="text-sm font-semibold text-slate-700 mb-2">Why</h2>
+  <ul class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100 mb-6 text-sm">
+    <% cv.reasons.each do |r| %>
+      <li class="p-3 flex justify-between">
+        <span><%= r["human_text"] %></span>
+        <span class="text-slate-400 font-mono text-xs"><%= r["code"] %></span>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Detection layers</h2>
+<table class="w-full bg-white border border-slate-200 rounded-lg text-sm mb-6">
+  <thead>
+    <tr class="text-left text-xs uppercase text-slate-400 border-b border-slate-100">
+      <th class="p-3">Layer</th><th class="p-3">State</th><th class="p-3">Credits</th>
+    </tr>
+  </thead>
+  <tbody class="divide-y divide-slate-100">
+    <% (@run&.layer_results || []).each do |lr| %>
+      <tr>
+        <td class="p-3 font-medium"><%= lr.layer.tr("_", " ") %></td>
+        <td class="p-3">
+          <span class="text-xs px-2 py-0.5 rounded-full
+            <%= lr.state == "returned_verdict" ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500" %>">
+            <%= lr.state.tr("_", " ") %>
+          </span>
+        </td>
+        <td class="p-3 text-slate-500"><%= lr.credits_charged %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<% if @run&.consent_certificate %>
+  <p class="mb-6">
+    <%= link_to "View consent certificate →", certificate_path(@run.consent_certificate), class: "text-blue-600 text-sm hover:underline" %>
+  </p>
+<% end %>
+
+<h2 class="text-sm font-semibold text-slate-700 mb-2">Activity</h2>
+<ul class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100 text-sm">
+  <% @activity.each do |event| %>
+    <li class="p-3 flex justify-between">
+      <span><%= event.event_type.tr("_", " ") %><% if event.payload["layer"] %> — <%= event.payload["layer"] %><% end %></span>
+      <span class="text-slate-400 text-xs"><%= event.occurred_at.strftime("%H:%M:%S") %></span>
+    </li>
+  <% end %>
+  <% if @activity.empty? %>
+    <li class="p-3 text-slate-400">No activity recorded.</li>
+  <% end %>
+</ul>
